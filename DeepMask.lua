@@ -24,6 +24,9 @@ local DeepMask,_ = torch.class('nn.DeepMask','nn.Container')
 --------------------------------------------------------------------------------
 -- function: constructor
 function DeepMask:__init(config)
+  -- activation function
+  self.acf = config.activationFunction
+
   -- create common trunk
   self:createTrunk(config)
 
@@ -66,7 +69,7 @@ function DeepMask:createTrunk(config)
 
   -- add common extra layers
   trunk:add(cudnn.SpatialConvolution(1024,128,1,1,1,1))
-  trunk:add(cudnn.ReLU())
+  trunk:add(self.acf())
   trunk:add(nn.View(config.batch,128*self.fSz*self.fSz))
   trunk:add(nn.Linear(128*self.fSz*self.fSz,512))
 

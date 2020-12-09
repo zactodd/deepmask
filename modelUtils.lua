@@ -30,7 +30,7 @@ function utils.linear2convTrunk(net,fSz)
       y.weight:copy(w); y.gradWeight:copy(w); y.bias:copy(x.bias)
       return y
     elseif torch.typename(x):find('Threshold') then
-      return cudnn.ReLU()
+      return net.acf()
     elseif torch.typename(x):find('View') or
        torch.typename(x):find('SpatialZeroPadding') then
       return nn.Identity()
@@ -52,7 +52,7 @@ function utils.linear2convHead(net)
       y.weight:copy(w); y.gradWeight:copy(w); y.bias:copy(x.bias)
       return y
     elseif torch.typename(x):find('Threshold') then
-      return cudnn.ReLU()
+      return net.acf()
     elseif not torch.typename(x):find('View') and
       not torch.typename(x):find('Copy') then
       return x

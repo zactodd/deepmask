@@ -24,6 +24,8 @@ local SharpMask, _ = torch.class('nn.SharpMask','nn.Container')
 --------------------------------------------------------------------------------
 -- function: init
 function SharpMask:__init(config)
+  self.acf = config.activationFunction
+
   self.km, self.ks = config.km, config.ks
   assert(self.km >= 16 and self.km%16==0 and self.ks >= 16 and self.ks%16==0)
 
@@ -71,7 +73,7 @@ function SharpMask:createVertical(config)
 
     netv:add(nn.SpatialSymmetricPadding(1,1,1,1))
     netv:add(cudnn.SpatialConvolution(nInps,nInps,3,3,1,1))
-    netv:add(cudnn.ReLU())
+    netv:add(self.acf())
 
     netv:add(nn.SpatialSymmetricPadding(1,1,1,1))
     netv:add(cudnn.SpatialConvolution(nInps,nInps/2,3,3,1,1))
@@ -101,11 +103,11 @@ function SharpMask:createHorizontal(config)
 
     h:add(nn.SpatialSymmetricPadding(1,1,1,1))
     h:add(cudnn.SpatialConvolution(nhu1,nhu2,3,3,1,1))
-    h:add(cudnn.ReLU())
+    h:add(self.acf())
 
     h:add(nn.SpatialSymmetricPadding(1,1,1,1))
     h:add(cudnn.SpatialConvolution(nhu2,nInps,3,3,1,1))
-    h:add(cudnn.ReLU())
+    h:add(self.acf())
 
     h:add(nn.SpatialSymmetricPadding(1,1,1,1))
     h:add(cudnn.SpatialConvolution(nInps,nInps/2,3,3,1,1))
@@ -124,7 +126,7 @@ function SharpMask:refinement(neth,netv)
    local par = nn.ParallelTable():add(neth):add(netv)
    ref:add(par)
    ref:add(nn.CAddTable(2))
-   ref:add(cudnn.ReLU())
+   ref:add(self.acf())
    ref:add(nn.SpatialUpSamplingNearest(2))
 
    return ref:cuda()
